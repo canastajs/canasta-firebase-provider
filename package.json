@@ -1,0 +1,34 @@
+{
+  "name": "canasta-firebase-provider",
+  "description": "",
+  "main": "lib-common/index.js",
+  "module": "lib-esm/index.js",
+  "types": "typings/index.d.ts",
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "npm run build:esm && npm run build:common && npm run build:typings",
+    "build:esm": "rimraf lib-esm && tsc --strict -t es2015 --lib es2015,dom -m es2015 --outDir lib-esm",
+    "build:common": "rimraf lib-common && tsc --strict -t es2015 --lib es2015,dom -m commonjs --outDir lib-common",
+    "build:typings": "rimraf typings && tsc --strict --declaration --emitDeclarationOnly --declarationDir typings"
+  },
+  "dependencies": {
+    "canasta-core": "0.0.9",
+    "canasta-firebase-utils": "0.0.6",
+    "firebase": "^5.0.4"
+  },
+  "devDependencies": {
+    "rimraf": "^2.6.2",
+    "typescript": "^2.9.1"
+  },
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/canastajs/canasta-firebase-provider.git"
+  },
+  "bugs": {
+    "url": "https://github.com/canastajs/canasta-firebase-provider/issues"
+  },
+  "homepage": "https://github.com/canastajs/canasta-firebase-provider#readme",
+  "author": "quenth@gmail.com",
+  "license": "MIT"
+}
