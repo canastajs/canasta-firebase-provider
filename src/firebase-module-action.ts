@@ -18,7 +18,7 @@ export class FirebaseModuleActionProvider implements IModuleActionProvider {
         this._functions_url = functions_url
     }
 
-    async invoke_module_action(function_name: string, module: string, action: string, payload?: {} | string): Promise<IModuleActionResponse> {
+    async invoke_module_action(module: string, action: string, payload?: {} | string): Promise<IModuleActionResponse> {
 
         const headers: HeadersInit = {
             'Accept': 'application/json',
@@ -41,7 +41,7 @@ export class FirebaseModuleActionProvider implements IModuleActionProvider {
             body
         }
 
-        const url = `${this._functions_url}/${function_name}/${module}/${action}`
+        const url = `${this._functions_url}/${module}/${action}`
 
         const response = await fetch(url, init)
 
