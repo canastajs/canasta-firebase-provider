@@ -1,15 +1,15 @@
 import * as firebase from 'firebase/app'
 import 'firebase/database'
-import { Setter, ISetterProvider } from 'canasta-core' // **NPM**
-import { encodeFirebasePath, decodeFirebaseKey } from 'canasta-firebase-utils' // **NPM**
+import { Updater, IUpdaterProvider } from 'canasta-core'
+import { encodeFirebasePath, decodeFirebaseKey } from 'canasta-firebase-utils'
 
-export class FirebaseSetter extends Setter {
+export class FirebaseUpdater extends Updater {
     constructor(firebase_database: firebase.database.Database) {
-        super(new FirebaseSetterProvider(firebase_database))
+        super(new FirebaseUpdaterProvider(firebase_database))
     }
 }
 
-export class FirebaseSetterProvider implements ISetterProvider {
+export class FirebaseUpdaterProvider implements IUpdaterProvider {
     private firebase_database: firebase.database.Database
     private updates: { [index: string]: any }
 

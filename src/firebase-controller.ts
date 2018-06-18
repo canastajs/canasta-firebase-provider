@@ -1,7 +1,7 @@
-import { Controller, IConnector, IControllers, IEventsPublisher, IConnection } from 'canasta-core' // **NPM**
+import { Controller, IConnector, IControllers, IEventsPublisher, IConnection } from 'canasta-core'
 import { FirebaseConnector, IFirebaseConnection } from './firebase-connector';
 import { FirebaseReader } from './firebase-reader';
-import { FirebaseSetter } from './firebase-setter';
+import { FirebaseUpdater } from './firebase-updater';
 import { FirebaseModuleAction } from './firebase-module-action';
 import { FirebaseWatcher } from './firebase-watcher';
 
@@ -24,7 +24,7 @@ export class FirebaseController extends Controller {
             }
             return {
                 reader: new FirebaseReader(firebase_database),
-                setter: new FirebaseSetter(firebase_database),
+                updater: new FirebaseUpdater(firebase_database),
                 moduleAction: new FirebaseModuleAction(firebase_auth, functions_url),
                 watcher: new FirebaseWatcher(firebase_database, eventsPublisher),
             }

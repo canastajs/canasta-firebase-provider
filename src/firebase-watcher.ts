@@ -1,7 +1,7 @@
 import * as firebase from 'firebase/app'
 import 'firebase/database'
-import { Watcher, IWatchProvider, IWatcherSubscription, IEventsPublisher } from 'canasta-core' // **NPM**
-import { encodeFirebasePath, decodeFirebaseKey } from 'canasta-firebase-utils' // **NPM**
+import { Watcher, IWatchProvider, IWatcherSubscription, IEventsPublisher } from 'canasta-core'
+import { encodeFirebasePath, decodeFirebaseKey } from 'canasta-firebase-utils'
 
 export class FirebaseWatcher extends Watcher {
     constructor(firebase_database: firebase.database.Database, eventsPublisher: IEventsPublisher) {

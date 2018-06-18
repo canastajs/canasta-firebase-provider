@@ -1,7 +1,7 @@
 import * as firebase from 'firebase/app'
 import 'firebase/auth'
 import 'firebase/database'
-import { IConnectionProvider, Connector, ISavedLoginProvider, ISavedLoginState, IEventsPublisher, ICredential, IUserState, IConnection } from 'canasta-core' // **NPM**
+import { IConnectionProvider, Connector, ISavedLoginProvider, ISavedLoginState, IEventsPublisher, ICredential, IUserState, IConnection } from 'canasta-core'
 
 export interface IFirebaseConnection {
     firebase_app: firebase.app.App | null,
@@ -107,13 +107,14 @@ async function token2connection(org_token: string): Promise<IFirebaseConnection>
 
     const token_decoded = atob(org_token).split('/')
     const org = token_decoded[0]
+    const region = token_decoded[3] || 'us-central1'
     const config = {
         apiKey: token_decoded[1],
         authDomain: `${org}.firebaseapp.com`,
         databaseURL: `https://${org}.firebaseio.com`,
         projectId: `${org}`,
         storageBucket: `${org}.appspot.com`,
-        messagingSenderId: token_decoded[2]
+        messagingSenderId: token_decoded[2] // may be undefined
     }
 
     let firebase_app: firebase.app.App | undefined
@@ -122,7 +123,7 @@ async function token2connection(org_token: string): Promise<IFirebaseConnection>
         firebase_app = firebase.initializeApp(config)
         const firebase_auth = firebase_app.auth()
         const firebase_database = firebase_app.database()
-        const functions_url = `https://us-central1-${org}.cloudfunctions.net`
+        const functions_url = `https://${region}-${org}.cloudfunctions.net`
         return { firebase_app, firebase_auth, firebase_database, functions_url }
     } catch(e) {
         if (firebase_app) {

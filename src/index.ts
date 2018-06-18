@@ -20,9 +20,9 @@ export {
 } from './firebase-module-action'
 
 export { 
-    FirebaseSetter,
-    FirebaseSetterProvider,
-} from './firebase-setter'
+    FirebaseUpdater,
+    FirebaseUpdaterProvider,
+} from './firebase-updater'
 
 export { 
     FirebaseWatcher,
@@ -41,11 +41,10 @@ export {
     Controller,
     EventTopics,
     IEditsConsumer,
-    IRegistry,
+    Registry,
     IEditor,
     IWatcherState,
     IWatchedDoc,
     IWatchedCollection,
     IConfiguration,
-    ISetterPayload,
-} from 'canasta-core' // **NPM**
+} from 'canasta-core'

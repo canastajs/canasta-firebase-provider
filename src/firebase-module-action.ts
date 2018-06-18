@@ -1,6 +1,6 @@
 import * as firebase from 'firebase/app'
 import 'firebase/auth'
-import { ModuleAction, IModuleActionProvider, IModuleActionResponse } from 'canasta-core' // **NPM**
+import { ModuleAction, IModuleActionProvider, IModuleActionResponse } from 'canasta-core'
 
 export class FirebaseModuleAction extends ModuleAction {
     constructor(firebase_auth: firebase.auth.Auth, functions_url: string) {

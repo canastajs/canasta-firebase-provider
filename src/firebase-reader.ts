@@ -1,7 +1,7 @@
 import * as firebase from 'firebase/app'
 import 'firebase/database'
-import { IReadProvider, Reader } from 'canasta-core' // **NPM**
-import { encodeFirebasePath, decodeFirebaseKey } from 'canasta-firebase-utils' // **NPM**
+import { IReadProvider, Reader } from 'canasta-core'
+import { encodeFirebasePath, decodeFirebaseKey } from 'canasta-firebase-utils'
 
 export class FirebaseReader extends Reader {
     constructor (firebase_database: firebase.database.Database) {
