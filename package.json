@@ -1,6 +1,6 @@
 {
   "name": "canasta-firebase-provider",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "",
   "main": "lib-common/index.js",
   "module": "lib-esm/index.js",
@@ -14,7 +14,7 @@
     "common": "rimraf lib-esm lib-common typings"
   },
   "dependencies": {
-    "canasta-core": "0.0.12",
+    "canasta-core": "0.0.13",
     "canasta-firebase-utils": "0.0.7",
     "firebase": "^5.2.0"
   },

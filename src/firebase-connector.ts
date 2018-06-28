@@ -41,13 +41,13 @@ export class FirebaseConnectorProvider implements IConnectionProvider {
         const { firebase_auth } = <IFirebaseConnection>connection
         if (firebase_auth) {
             const result = await firebase_auth.getRedirectResult()
-            if (result && result.user) {
+            if (result && result.user && result.credential) {
                 return { user: result.user, credential: result.credential }
             }
         }
     }
 
-    async signInWithCredential(connection: IConnection, credential: ICredential): Promise<IUserState> {
+    async signInWithCredential(connection: IConnection, credential: ICredential): Promise<IUserState | void> {
         const { firebase_auth } = <IFirebaseConnection>connection
         if (firebase_auth == null) {
             throw new Error('Missing required argument, `connection`')
@@ -61,7 +61,7 @@ export class FirebaseConnectorProvider implements IConnectionProvider {
         const googleCredential = firebase.auth.GoogleAuthProvider.credential(firebaseCredential.idToken)
         const userCredential = await firebase_auth.signInAndRetrieveDataWithCredential(googleCredential)
 
-        return userCredential && userCredential.user
+        if (userCredential && userCredential.user) return userCredential.user
     }
 
     async signInWithRedirect(connection: {}): Promise<{ user: IUserState; credential: ICredential; } | void> {
