@@ -6,6 +6,10 @@
   "module": "lib-esm/index.js",
   "types": "typings/index.d.ts",
   "scripts": {
+    "publishpatch": "npm version patch",
+    "publishminor": "npm version minor",
+    "publishmajor": "npm version major",
+    "postversion": "git push && git push --tags && npm publish",
     "prepare": "npm run build",
     "build": "npm run build:esm && npm run build:common && npm run build:typings",
     "build:esm": "rimraf lib-esm && tsc --strict -t es2015 --lib es2015,dom -m es2015 --outDir lib-esm",
