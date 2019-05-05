@@ -20,11 +20,11 @@
   "dependencies": {
     "canasta-core": "0.0.21",
     "canasta-firebase-utils": "0.0.9",
-    "typescript": "^3.4.5"
+    "firebase": "^5.11.1"
   },
   "devDependencies": {
-    "firebase": "^5.11.1",
-    "rimraf": "^2.6.3"
+    "rimraf": "^2.6.3",
+    "typescript": "^3.4.5"
   },
   "repository": {
     "type": "git",
