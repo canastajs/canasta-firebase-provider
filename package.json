@@ -20,7 +20,7 @@
   "dependencies": {
     "canasta-core": "0.0.21",
     "canasta-firebase-utils": "0.0.9",
-    "firebase": "^5.11.1"
+    "firebase": "^7.5.0"
   },
   "devDependencies": {
     "rimraf": "^2.6.3",
