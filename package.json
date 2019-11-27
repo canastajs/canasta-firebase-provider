@@ -1,6 +1,6 @@
 {
   "name": "canasta-firebase-provider",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "",
   "main": "lib-common/index.js",
   "module": "lib-esm/index.js",
