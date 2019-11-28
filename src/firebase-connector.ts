@@ -59,7 +59,7 @@ export class FirebaseConnectorProvider implements IConnectionProvider {
         }
 
         const googleCredential = firebase.auth.GoogleAuthProvider.credential(firebaseCredential.idToken)
-        const userCredential = await firebase_auth.signInAndRetrieveDataWithCredential(googleCredential)
+        const userCredential = await firebase_auth.signInWithCredential(googleCredential)
 
         if (userCredential && userCredential.user) return userCredential.user
     }
@@ -90,7 +90,10 @@ export class FirebaseConnectorProvider implements IConnectionProvider {
 class WindowLocalStorageProvider implements ISavedLoginProvider {
     async set_saved_login(key: any, login: ISavedLoginState): Promise<void> {
         if (login) {
-            window.localStorage.setItem(key, JSON.stringify(login))
+            window.localStorage.setItem(key, JSON.stringify({
+                org_token: login.org_token,
+                credential: JSON.stringify(login.credential) // will call custom toJSON()
+            }))
         }
         else {
             window.localStorage.removeItem(key)
@@ -98,7 +101,12 @@ class WindowLocalStorageProvider implements ISavedLoginProvider {
     }
     async get_saved_login(key: any): Promise<ISavedLoginState | null> {
         const json = window.localStorage.getItem(key)
-        return json && JSON.parse(json)
+        if (!json) return null
+        const temp = JSON.parse(json)
+        return {
+            org_token: temp.org_token,
+            credential: firebase.auth.AuthCredential.fromJSON(temp.credential)
+        }
     }
 }
 
