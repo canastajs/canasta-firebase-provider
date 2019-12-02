@@ -34,6 +34,7 @@ class UserObserver implements firebase.Observer<firebase.User> {
     private _rejecters: ((reason?: Error) => void | undefined)[] = []
     private _unsubscribe?: firebase.Unsubscribe
     private _user?: firebase.User | null
+    private _token?: string | null
     private _auth_error?: Error
     private _is_completed: boolean = false
 
@@ -44,8 +45,23 @@ class UserObserver implements firebase.Observer<firebase.User> {
     complete() { }
 
     next(user: firebase.User | null) { 
-        this._user = user
-        this._resolveAll(user)
+        if (user == null) {
+            this._user = null
+            this._token = null
+            this._resolveAll(user)
+        } else {
+            user.getIdToken(true) // force token refresh
+            .then((token) => {
+                this._token = token
+                this._user = user
+                this._resolveAll(user)
+            })
+            .catch((error) => {
+                console.log('user.getIdToken error:', error)
+                this._auth_error = error
+                this._rejectAll(error)
+            })
+        }
     }
 
     resolveUser(resolve?: (value?: { user: IUserState; credential: ICredential; } | void) => void, reject?: (reason?: Error) => void) {
@@ -55,7 +71,7 @@ class UserObserver implements firebase.Observer<firebase.User> {
         else if (this._auth_error) {
             reject && reject(this._auth_error)
         }
-        else if (this._user === undefined) {
+        else if ((this._user === undefined) || (this._token === undefined)) {
             resolve && this._resolvers.push(resolve)
             reject && this._rejecters.push(reject)
         }
