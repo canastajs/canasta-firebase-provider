@@ -29,7 +29,99 @@ export class FirebaseConnector extends Connector {
     }
 }
 
+class UserObserver implements firebase.Observer<firebase.User> {
+    private _resolvers: ((value?: { user: IUserState; credential: ICredential; } | void) => void)[] = []
+    private _rejecters: ((reason?: Error) => void | undefined)[] = []
+    private _unsubscribe?: firebase.Unsubscribe
+    private _user?: firebase.User | null
+    private _token?: string | null
+    private _auth_error?: Error
+    private _is_completed: boolean = false
+
+    constructor(auth: firebase.auth.Auth) {
+        this._unsubscribe = this._unsubscribe = auth.onAuthStateChanged(this)
+    }
+
+    complete() { }
+
+    next(user: firebase.User | null) { 
+        if (user == null) {
+            this._user = null
+            this._token = null
+            this._resolveAll(user)
+        } else {
+            user.getIdToken(true) // force token refresh
+            .then((token) => {
+                this._token = token
+                this._user = user
+                this._resolveAll(user)
+            })
+            .catch((error) => {
+                console.log('user.getIdToken error:', error)
+                this._auth_error = error
+                this._rejectAll(error)
+            })
+        }
+    }
+
+    resolveUser(resolve?: (value?: { user: IUserState; credential: ICredential; } | void) => void, reject?: (reason?: Error) => void) {
+        if (this._is_completed) {
+            reject && reject(new Error("onAuthStateChanged observer has been closed"))
+        }
+        else if (this._auth_error) {
+            reject && reject(this._auth_error)
+        }
+        else if ((this._user === undefined) || (this._token === undefined)) {
+            resolve && this._resolvers.push(resolve)
+            reject && this._rejecters.push(reject)
+        }
+        else {
+            resolve && (this._user ? resolve(UserObserver._toUserCredential(this._user)) : resolve())
+        }
+    }
+
+    error(error: Error) { 
+        console.log('auth error', error)
+        this._auth_error = error 
+        this._rejectAll(error)
+    }
+
+    close() {
+        this._is_completed = true 
+        if (this._unsubscribe) { 
+            this._unsubscribe()
+            this._unsubscribe = undefined
+        }
+        this._rejectAll(new Error("onAuthStateChanged observer has been closed"))
+    }
+
+    private static _toUserCredential (user: firebase.User): { user: IUserState, credential: ICredential } {
+        return { user, credential: { email: user.email } }
+    }
+
+    private _resolveAll(user: firebase.User | null) {
+        if (this._user) {
+            let userCredential = UserObserver._toUserCredential(this._user)
+            this._resolvers.forEach((resolve) => resolve(userCredential))
+        }
+        else {
+            this._resolvers.forEach((resolve) => resolve())
+        }
+        this._resolvers = []
+        this._rejecters = []
+    }
+
+    private _rejectAll(error: Error) {
+        this._rejecters.forEach((reject) => reject && reject(error))
+        this._resolvers = []
+        this._rejecters = []
+    }
+    
+}
+
 export class FirebaseConnectorProvider implements IConnectionProvider {
+
+    private _userObserver?: UserObserver
 
     constructor() {}
 
@@ -40,10 +132,14 @@ export class FirebaseConnectorProvider implements IConnectionProvider {
     async getRedirectResult(connection: IConnection): Promise<{ user: IUserState; credential: ICredential; } | void> {
         const { firebase_auth } = <IFirebaseConnection>connection
         if (firebase_auth) {
-            const result = await firebase_auth.getRedirectResult()
-            if (result && result.user && result.credential) {
-                return { user: result.user, credential: result.credential }
-            }
+            // const result = await firebase_auth.getRedirectResult()
+            // if (result && result.user && result.credential) {
+            //     return { user: result.user, credential: result.credential }
+            // }
+            if (!this._userObserver) { this._userObserver = new UserObserver(firebase_auth) }
+            return new Promise((resolve, reject) => 
+                this._userObserver ? this._userObserver.resolveUser(resolve, reject) 
+                : reject(new Error("FirebaseConnectorProvider _userObserver not initialized")))
         }
     }
 
@@ -53,15 +149,23 @@ export class FirebaseConnectorProvider implements IConnectionProvider {
             throw new Error('Missing required argument, `connection`')
         }
 
-        const firebaseCredential = <{ idToken?: string }>credential
-        if (firebaseCredential == null) {``
-            throw new Error('Missing required argument, `credential`')
-        }
+        if (!firebase_auth.currentUser) return
 
-        const googleCredential = firebase.auth.GoogleAuthProvider.credential(firebaseCredential.idToken)
-        const userCredential = await firebase_auth.signInAndRetrieveDataWithCredential(googleCredential)
+        const email = credential && (<any>credential).email
+        if (!email) return
+        if (firebase_auth.currentUser.email !== email) return
 
-        if (userCredential && userCredential.user) return userCredential.user
+        return firebase_auth.currentUser      
+
+        // const firebaseCredential = <{ idToken?: string }>credential
+        // if (firebaseCredential == null) {``
+        //     throw new Error('Missing required argument, `credential`')
+        // }
+
+        // const googleCredential = firebase.auth.GoogleAuthProvider.credential(firebaseCredential.idToken)
+        // const userCredential = await firebase_auth.signInWithCredential(googleCredential)
+
+        // if (userCredential && userCredential.user) return userCredential.user
     }
 
     async signInWithRedirect(connection: {}): Promise<{ user: IUserState; credential: ICredential; } | void> {
@@ -76,6 +180,10 @@ export class FirebaseConnectorProvider implements IConnectionProvider {
 
     async signOut(connection: {}): Promise<void> {
         const { firebase_auth, firebase_app } = <IFirebaseConnection>connection
+        if (this._userObserver) {
+            this._userObserver.close()
+            this._userObserver = undefined
+        }
         if (firebase_auth) {
             await firebase_auth.signOut()
         }
@@ -90,7 +198,10 @@ export class FirebaseConnectorProvider implements IConnectionProvider {
 class WindowLocalStorageProvider implements ISavedLoginProvider {
     async set_saved_login(key: any, login: ISavedLoginState): Promise<void> {
         if (login) {
-            window.localStorage.setItem(key, JSON.stringify(login))
+            window.localStorage.setItem(key, JSON.stringify({
+                org_token: login.org_token,
+                credential: JSON.stringify(login.credential) // will call custom toJSON()
+            }))
         }
         else {
             window.localStorage.removeItem(key)
@@ -98,7 +209,12 @@ class WindowLocalStorageProvider implements ISavedLoginProvider {
     }
     async get_saved_login(key: any): Promise<ISavedLoginState | null> {
         const json = window.localStorage.getItem(key)
-        return json && JSON.parse(json)
+        if (!json) return null
+        const temp = JSON.parse(json)
+        return {
+            org_token: temp.org_token,
+            credential: firebase.auth.AuthCredential.fromJSON(temp.credential)
+        }
     }
 }
 
